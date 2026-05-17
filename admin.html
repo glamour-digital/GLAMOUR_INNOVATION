@@ -1,0 +1,208 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Admin Gateway | GLAMOUR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        
+        :root { --glam-gold: #d4af37; --glam-black: #050505; }
+
+        body { background: var(--glam-black); font-family: 'Plus Jakarta Sans', sans-serif; color: #fff; min-height: 100vh; overflow-x: hidden; }
+        
+        .topbar { padding: 15px 6%; background: rgba(5, 5, 5, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(212, 175, 55, 0.2); display: flex; justify-content: space-between; align-items: center; }
+        .logo-img { height: 40px; width: auto; }
+
+        /* Main Content Container */
+        #main-wrapper { transition: filter 0.3s ease; }
+        .blur-bg { filter: blur(8px); pointer-events: none; }
+
+        .auth-card { width: 92%; max-width: 420px; background: #0f0f0f; border: 1px solid rgba(212, 175, 55, 0.15); border-radius: 32px; padding: 40px 25px; margin-top: 50px; }
+        
+        label { font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: var(--glam-gold); font-weight: 800; display: block; margin: 0 0 8px 10px; }
+        
+        .input-box { position: relative; width: 100%; margin-bottom: 5px; }
+        .glam-input { width: 100%; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 16px; color: #fff; font-weight: 600; outline: none; transition: 0.3s; }
+        .glam-input:focus { border-color: var(--glam-gold); background: rgba(212,175,55,0.05); }
+        
+        .error-text { color: #ff4d4d; font-size: 10px; font-weight: 600; margin-left: 10px; margin-bottom: 15px; display: none; }
+
+        .eye-icon { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #666; cursor: pointer; font-size: 18px; }
+
+        .glam-btn { width: 100%; background: linear-gradient(135deg, #f5e050 0%, #d4af37 100%); color: #000; border-radius: 16px; padding: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; }
+
+        /* Modern Glass Modal */
+        #glass-modal { position: fixed; inset: 0; z-index: 9999; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); }
+        .glass-content { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; padding: 35px 25px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+        .modal-btn { background: #fff; color: #000; width: 100%; padding: 14px; border-radius: 15px; font-weight: 800; font-size: 12px; text-transform: uppercase; margin-top: 25px; }
+
+        #admin-section { display: none; }
+    </style>
+</head>
+<body>
+
+<div id="main-wrapper">
+    <div class="topbar">
+        <img src="logo.png" alt="G" class="logo-img">
+        <div class="text-[10px] font-black uppercase tracking-[3px] text-zinc-500">Secure Access</div>
+    </div>
+
+    <main id="login-section" class="flex flex-col items-center px-4">
+        <div class="auth-card">
+            <h1 class="text-2xl font-black italic tracking-tighter mb-8 text-center">ADMIN LOGIN</h1>
+            
+            <label>Username</label>
+            <div class="input-box">
+                <input type="text" id="admin-user" class="glam-input" placeholder="">
+            </div>
+            <div id="user-error" class="error-text">Please fill in your username</div>
+
+            <label>Password</label>
+            <div class="input-box">
+                <input type="password" id="admin-pass" class="glam-input" placeholder="">
+                <i class="fas fa-eye eye-icon" id="togglePass"></i>
+            </div>
+            <div id="pass-error" class="error-text">Please fill in your password</div>
+            
+            <button class="glam-btn" onclick="checkAuth()">Authorize Access</button>
+        </div>
+    </main>
+
+    <main id="admin-section" class="flex flex-col items-center px-4">
+        <div class="auth-card">
+            <h2 class="text-xl font-black italic mb-8 text-center">GATEWAY CONTROL</h2>
+            <div class="space-y-4">
+                <div><label>Account Number</label><input type="text" id="db-account" class="glam-input"></div>
+                <div><label>Bank Name</label><input type="text" id="db-bank" class="glam-input"></div>
+                <div><label>Beneficiary Name</label><input type="text" id="db-beneficiary" class="glam-input"></div>
+                <div><label>Activation Fee</label><input type="text" id="db-fee" class="glam-input"></div>
+                <div><label>Telegram Link</label><input type="text" id="db-telegram" class="glam-input"></div>
+                <button class="glam-btn mt-4" id="update-btn" onclick="updateFirebase()">SAVE & UPDATE DETAILS</button>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div id="glass-modal">
+    <div class="glass-content">
+        <div id="modal-icon" class="mb-4">
+    <i id="icon-element" style="font-size: 45px;"></i>
+</div>
+        <p id="modal-text" class="text-[13px] font-bold leading-relaxed tracking-tight px-4"></p>
+        <button class="modal-btn" onclick="closeModal()">OK</button>
+    </div>
+</div>
+
+<script>
+    const MASTER_USER = "AdminGlamour";
+    const MASTER_PASS = "Glamour2026";
+
+    // Firebase Config
+     const firebaseConfig = {
+  apiKey: "AIzaSyAjsAimtV6oQCD8oCFrb72cyRBMXukB0yI",
+  authDomain: "glamour-d3c61.firebaseapp.com",
+  databaseURL: "https://glamour-d3c61-default-rtdb.firebaseio.com",
+  projectId: "glamour-d3c61",
+  storageBucket: "glamour-d3c61.firebasestorage.app",
+  messagingSenderId: "826174500352",
+  appId: "1:826174500352:web:e2d35e3678eba9b182f2e5",
+   databaseURL: "https://glamour-d3c61-default-rtdb.firebaseio.com/" // Added database URL
+};
+
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const database = firebase.database();
+
+    // Eye Toggle Logic
+    document.getElementById('togglePass').addEventListener('click', function() {
+        const passInput = document.getElementById('admin-pass');
+        if (passInput.type === 'password') {
+            passInput.type = 'text';
+            this.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            passInput.type = 'password';
+            this.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    });
+
+   function showModal(text, isSuccess) {
+    const iconEl = document.getElementById('icon-element');
+    const modalText = document.getElementById('modal-text');
+    
+    modalText.innerText = text;
+    
+    // Check if isSuccess is true/false (from your checkAuth/update calls)
+    if (isSuccess === true || isSuccess === "success") {
+        iconEl.className = "fas fa-check-circle";
+        iconEl.style.color = "#22c55e"; 
+    } else {
+        iconEl.className = "fas fa-times-circle";
+        iconEl.style.color = "#ff4d4d"; 
+    }
+
+    document.getElementById('main-wrapper').classList.add('blur-bg');
+    document.getElementById('glass-modal').style.display = 'flex';
+}
+
+    function closeModal() {
+        document.getElementById('main-wrapper').classList.remove('blur-bg');
+        document.getElementById('glass-modal').style.display = 'none';
+    }
+
+    function checkAuth() {
+        const u = document.getElementById('admin-user').value.trim();
+        const p = document.getElementById('admin-pass').value.trim();
+        
+        document.getElementById('user-error').style.display = u === "" ? "block" : "none";
+        document.getElementById('pass-error').style.display = p === "" ? "block" : "none";
+
+        if (u === "" || p === "") return;
+
+        if (u === MASTER_USER && p === MASTER_PASS) {
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('admin-section').style.display = 'flex';
+            fetchLiveSettings();
+        } else {
+            showModal("INVALID CREDENTIALS", "error");
+        }
+    }
+
+    function fetchLiveSettings() {
+        database.ref('admin_settings').once('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                document.getElementById('db-account').value = data.account_number || "";
+                document.getElementById('db-bank').value = data.bank_name || "";
+                document.getElementById('db-beneficiary').value = data.beneficiary_name || "";
+                document.getElementById('db-fee').value = data.activation_fee || "";
+                document.getElementById('db-telegram').value = data.telegram_link || "";
+            }
+        });
+    }
+
+    function updateFirebase() {
+        const btn = document.getElementById('update-btn');
+        btn.innerText = "UPDATING...";
+        
+        const updatedData = {
+            account_number: document.getElementById('db-account').value,
+            bank_name: document.getElementById('db-bank').value,
+            beneficiary_name: document.getElementById('db-beneficiary').value,
+            activation_fee: document.getElementById('db-fee').value,
+            telegram_link: document.getElementById('db-telegram').value
+        };
+
+        database.ref('admin_settings').set(updatedData).then(() => {
+            btn.innerText = "UPDATE WEBSITE";
+            showModal("DETAILS UPDATED SUCCESSFULLY", "success");
+        });
+    }
+</script>
+</body>
+</html>

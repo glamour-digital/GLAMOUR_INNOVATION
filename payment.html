@@ -1,0 +1,565 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Secure Activation | GLAMOUR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        
+        :root {
+            --glam-gold: #d4af37;
+            --glam-black: #050505;
+            --glam-red: #ff3b30;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--glam-black);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 6%;
+            background: rgba(5, 5, 5, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .logo-img { height: 40px; width: auto; }
+
+        .nav-link {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-weight: 800;
+            margin-left: 20px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 15px;
+        }
+
+        .reward-box {
+            width: 100%;
+            max-width: 480px;
+            background: #0f0f0f;
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            border-radius: 32px;
+            padding: 35px 25px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .plan-header {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--glam-gold);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        /* Stacked Price Container */
+        .price-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .old-price { 
+            font-size: 16px; 
+            color: #444; 
+            text-decoration: line-through; 
+            font-weight: 600;
+            margin-bottom: -5px; /* Pulls prices closer */
+        }
+        
+        .new-price { 
+            font-size: 46px; 
+            font-weight: 900; 
+            color: #ffffff; 
+            letter-spacing: -2px; 
+        }
+        .timer-badge {
+            font-size: 9.5px;
+            background: rgba(255, 59, 48, 0.1);
+            color: var(--glam-red);
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-weight: 900;
+            display: inline-block;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 59, 48, 0.4);
+            text-transform: uppercase;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        /* Payment Details Area */
+        .payment-info { text-align: left; margin-top: 20px; }
+        .info-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 12px;
+        }
+        .label { 
+            font-size: 8.5px; 
+            text-transform: uppercase; 
+            letter-spacing: 1.5px; 
+            color: var(--glam-gold); 
+            font-weight: 800;
+            margin-bottom: 4px;
+            display: block;
+        }
+        .val-text { font-size: 22px; font-weight: 800; color: #fff; }
+        .account-row { display: flex; justify-content: space-between; align-items: center; }
+        .copy-btn {
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid var(--glam-gold);
+            color: var(--glam-gold);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .plan-button {
+            width: 100%;
+            background: linear-gradient(135deg, #f5e050 0%, #d4af37 100%);
+            color: #000;
+            border: none;
+            border-radius: 16px;
+            padding: 20px;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Modal Background */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    display: none; justify-content: center; align-items: center;
+    z-index: 3000;
+}
+
+/* Slow Pop-up Animation */
+/* Improved Slow Pop-up */
+.modal-content {
+    width: 90%; max-width: 450px;
+    background: #0f0f0f;
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 28px;
+    padding: 30px 20px;
+    position: relative;
+    /* Start state for animation */
+    transform: translateY(30px) scale(0.95); 
+    opacity: 0;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease;
+}
+
+.modal-overlay.active { display: flex; }
+/* End state when active */
+.modal-overlay.active .modal-content { 
+    transform: translateY(0) scale(1); 
+    opacity: 1; 
+}
+
+.close-modal {
+    position: absolute; top: 20px; right: 20px;
+    color: #555; font-size: 20px; cursor: pointer;
+}
+
+/* Typing Animation */
+.typing-dots::after {
+    content: '';
+    animation: typing 1.5s infinite;
+}
+@keyframes typing {
+    0% { content: ''; } 33% { content: '.'; } 66% { content: '..'; } 100% { content: '...'; }
+}
+
+.upload-area {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed rgba(212, 175, 55, 0.3);
+    border-radius: 15px;
+    padding: 20px; text-align: center; cursor: pointer; margin: 15px 0;
+}
+
+#preview-container {
+    position: relative; display: none; margin-top: 10px; width: 120px; margin-inline: auto;
+}
+#img-preview { width: 100%; border-radius: 10px; border: 1px solid var(--glam-gold); }
+.del-icon {
+    position: absolute; top: -5px; right: -5px; background: var(--glam-red);
+    color: white; width: 20px; height: 20px; border-radius: 50%; font-size: 12px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+
+.verify-btn {
+    width: 100%; padding: 15px; border-radius: 12px; font-weight: 800;
+    margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.wa-btn { background: #25D366; color: white; }
+.tg-btn { background: #0088cc; color: white; }
+
+        /* Activity Feed Styling */
+        .activity-feed-container {
+            position: fixed; top: 20px; left: -400px; z-index: 2000; width: 300px; padding: 14px;
+            background: #0f0f0f; border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 20px;
+            display: flex; align-items: center; transition: left 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
+        .show-activity { left: 20px; }
+        .activity-icon { width: 40px; height: 40px; background: rgba(212, 175, 55, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: var(--glam-gold); }
+        #activity-text { flex-grow: 1; font-size: 11px; color: #ccc; }
+        .activity-time { color: rgba(255,255,255,0.3); font-size: 9px; display: block; }
+#upload-error {
+    color: var(--glam-red);
+    font-size: 10px;
+    font-weight: 800;
+    margin-top: 5px;
+    display: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+        .footer { padding: 40px; text-align: center; color: #333; font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-top: auto; }
+    </style>
+</head>
+<body>
+
+    <div class="modal-overlay" id="paymentModal">
+    <div class="modal-content">
+        <i class="fas fa-times close-modal" onclick="toggleModal()"></i>
+        
+        <h2 class="val-text" style="text-align:center; color:var(--glam-gold); font-size: 20px;">
+            PENDING ACTIVATION<span class="typing-dots"></span>
+        </h2>
+
+        <div class="info-card" style="margin-top:20px; background: rgba(212,175,55,0.05);">
+            <p style="font-size: 12px; color: #888; text-align: center; line-height: 1.6;">
+                Kindly upload your payment proof/receipt and click on the button below to confirm your payment and verify your activation now.
+            </p>
+        </div>
+
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+            <i class="fas fa-cloud-upload-alt" style="color:var(--glam-gold); margin-bottom:10px;"></i>
+            <p style="font-size: 12px; font-weight: 800;">UPLOAD PHOTO (IMG)</p>
+            <input type="file" id="fileInput" hidden accept="image/*" onchange="handleUpload(this)">
+        </div>
+        <p id="upload-error">kindly upload your transaction receipt before you proceed!</p>
+
+        <div id="preview-container">
+            <img id="img-preview" src="">
+            <div class="del-icon" onclick="removeImg()"><i class="fas fa-trash"></i></div>
+        </div>
+
+        <button id="main-verify-btn" class="plan-button" style="margin-top:20px;" onclick="startRedirect()">
+    VERIFY ACTIVATION NOW <i class="fas fa-external-link-alt ml-2"></i>
+</button>
+
+        <p style="text-align:center; color:#333; font-size:9px; font-weight:800; margin-top:20px; letter-spacing:1px;">
+            SECURED PAYMENT....FAST VERIFICATION
+        </p>
+    </div>
+</div>
+
+<div class="topbar">
+    <a class='logo-container' href='/'>
+        <img src="logo.png" alt="G" class="logo-img">
+    </a>
+    <div>
+        <a class='nav-link' href='/dashboard' style='color: var(--glam-gold)'><i class="fas fa-arrow-left"></i>  back to dashboard</a>
+    </div>
+</div>
+
+<main>
+    <div class="reward-box">
+        <div class="plan-header">ONE TIME ACTIVATION</div>
+        <div class="price-container">
+            <div class="old-price">₦25,000<br>
+            </div>
+            <div class="new-price" id="display-amount">₦14,000</div>
+        </div>
+        <div class="timer-badge"><i class="fas fa-bolt mr-2"></i> LIMITED OFFER: <span id="countdown">10:00</span></div>
+        <div style="margin-top: 15px; padding: 0 15px; text-align: center;">
+    <p style="color: rgba(212, 175, 55, 0.6); font-size: 13px; font-weight: 600; line-height: 1.5; letter-spacing: 0.5px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+        <i class="fas fa-info-circle" style="font-size: 12px; opacity: 0.8;"></i>
+        IMPORTANT: Ensure you transfer the exact amount specified above to prevent any technical delays with your automated account activation.
+    </p>
+</div>
+
+        <div class="payment-info">
+            <div class="info-card">
+                <span class="label">Account Number</span>
+                <div class="account-row">
+                    <div class="val-text" id="display-account"></div>
+                    <button class="copy-btn" id="copy-btn" onclick="copyText()">COPY</button>
+                </div>
+            </div>
+            <div class="info-card">
+                <span class="label">Bank Name</span>
+                <div class="val-text" id="display-bank"></div>
+            </div>
+            <div class="info-card" style="margin-bottom: 0;">
+                <span class="label">Beneficiary Name</span>
+                <div class="val-text" style="font-size: 14px;" id="display-name"></div>
+            </div>
+        </div>
+
+        <button class="plan-button" onclick="handlePayment()">Confirm Payment Now</button>
+        <p class="text-[9px] text-zinc-600 mt-4 uppercase font-bold tracking-widest italic">Secure Transfer Verification</p>
+    </div>
+</main>
+
+<div class="footer">© 2026 GLAMOUR — SOFT LIFE DEFINED</div>
+
+<div id="activity-feed" class="activity-feed-container">
+    <div class="activity-icon"><i id="act-icon" class="fas fa-star"></i></div>
+    <div id="activity-text">Authenticating Glamour...</div>
+</div>
+
+<script>
+    // 1. Firebase Configuration
+    const firebaseConfig = {
+  apiKey: "AIzaSyAjsAimtV6oQCD8oCFrb72cyRBMXukB0yI",
+  authDomain: "glamour-d3c61.firebaseapp.com",
+  databaseURL: "https://glamour-d3c61-default-rtdb.firebaseio.com",
+  projectId: "glamour-d3c61",
+  storageBucket: "glamour-d3c61.firebasestorage.app",
+  messagingSenderId: "826174500352",
+  appId: "1:826174500352:web:e2d35e3678eba9b182f2e5",
+   databaseURL: "https://glamour-d3c61-default-rtdb.firebaseio.com/" // Added database URL
+};
+
+    // 2. Initialize Firebase (COMPAT Version to match your header scripts)
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const database = firebase.database();
+
+    // 3. Live Sync Function
+    function watchAdminSettings() {
+        database.ref('admin_settings').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                document.getElementById('display-account').innerText = data.account_number || "3002381140";
+                document.getElementById('display-bank').innerText = data.bank_name || "KUDA BANK";
+                document.getElementById('display-name').innerText = data.beneficiary_name || "GLAMOUR ENTERPRISE";
+                document.getElementById('display-amount').innerText = data.activation_fee || "₦14,000";
+                
+                window.telegramLink = data.telegram_link;
+                window.currentFee = data.activation_fee;
+            }
+        });
+    }
+
+    // 4. Timer Logic
+    function startTimer(duration, display) {
+        let timer = duration, minutes, seconds;
+        setInterval(function () {
+            minutes = parseInt(timer / 60, 10);
+            seconds = parseInt(timer % 60, 10);
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            seconds = seconds < 10 ? "0" + seconds : seconds;
+            display.textContent = minutes + ":" + seconds;
+            if (--timer < 0) { timer = duration; }
+        }, 1000);
+    }
+
+    // 5. General Functions
+    function copyText() {
+        const acc = document.getElementById('display-account').innerText;
+        const btn = document.getElementById('copy-btn');
+        navigator.clipboard.writeText(acc).then(() => {
+            btn.innerText = "COPIED";
+            setTimeout(() => { btn.innerText = "COPY"; }, 2000);
+        });
+    }
+
+    function toggleModal() {
+        document.getElementById('paymentModal').classList.toggle('active');
+    }
+
+    function handlePayment() {
+        toggleModal();
+    }
+
+    function handleUpload(input) {
+        const errorMsg = document.getElementById('upload-error');
+        const previewContainer = document.getElementById('preview-container');
+        const previewImg = document.getElementById('img-preview');
+        
+        if (input.files && input.files[0]) {
+            errorMsg.style.display = "none";
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                previewContainer.style.display = 'block';
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function removeImg() {
+        document.getElementById('fileInput').value = "";
+        document.getElementById('preview-container').style.display = 'none';
+    }
+
+    // 6. Redirect Logic
+    function startRedirect() {
+    const fileInput = document.getElementById('fileInput');
+    const errorMsg = document.getElementById('upload-error');
+    const btn = document.getElementById('main-verify-btn');
+    
+    const telegramLink = window.telegramLink || "https://shorturl.at/pCtxq"; 
+
+    if (!fileInput.files || !fileInput.files[0]) {
+        errorMsg.style.display = "block";
+        return; 
+    }
+
+    errorMsg.style.display = "none";
+    btn.style.opacity = "0.5";
+    btn.innerHTML = `REDIRECTING<span class="typing-dots"></span>`;
+    btn.disabled = true;
+
+    setTimeout(() => {
+        const userData = JSON.parse(localStorage.getItem("glamour_pending_user")) || {};
+        const reference = 'GLM-' + Math.floor(1000000000 + Math.random() * 9000000000);
+        const fee = window.currentFee || "₦14,000";
+
+        // This is your exact message format
+        const message = `🚀 Hello Coach, I have made my payment for Glamour activation, Here are my details:
+
+👤 Name: ${userData.fullName}
+🆔 Username: ${userData.username}
+📧 Email: ${userData.email}
+📱 Phone: ${userData.phone}
+💰 Amount Paid: ${fee}
+
+💳 Ref: ${reference}
+
+PAID VIA VERIFIED MERCHANT ✅
+
+Kindly confirm and activate my account.`;
+
+        // FIXED: Changed customText to message to match your variable above
+        window.location.href = `${telegramLink}?text=${encodeURIComponent(message)}`;
+    }, 4000);
+}
+    // 7. Activity Feed
+    const ACTIVITIES = [
+        { name: "Kofi A.", amount: "GHS 420", time: "just now" },
+        { name: "Seyi Vibe", amount: "₦45,000", time: "just now" },
+        { name: "Musa K.", amount: "₦12,000", time: "1m ago" },
+        { name: "Thabo M.", amount: "ZAR 1,200", time: "2m ago" }
+    ];
+    let activityIndex = 0;
+
+    function cycleActivityFeed() {
+        const activityElement = document.getElementById('activity-text');
+        const feedContainer = document.getElementById('activity-feed');
+        if(!feedContainer) return;
+        const act = ACTIVITIES[activityIndex];
+        activityElement.innerHTML = `<strong>${act.name}</strong> withdrew <span style="color:#ff3b30">${act.amount}</span>!<span class="activity-time">${act.time}</span>`;
+        feedContainer.classList.add('show-activity');
+        setTimeout(() => {
+            feedContainer.classList.remove('show-activity');
+            activityIndex = (activityIndex + 1) % ACTIVITIES.length;
+        }, 5000); 
+    }
+
+    // 8. Single Unified Load Event
+    window.addEventListener('DOMContentLoaded', () => {
+        watchAdminSettings();
+        startTimer(10 * 60, document.querySelector('#countdown'));
+        setTimeout(cycleActivityFeed, 2000);
+        setInterval(cycleActivityFeed, 10000);
+    });
+    // This runs as soon as the window loads
+window.addEventListener('load', function() {
+    const wrapper = document.getElementById('main-wrapper');
+    const modal = document.getElementById('notice-modal');
+    
+    // Blur everything behind the modal immediately
+    if (wrapper) {
+        wrapper.style.filter = 'blur(15px)';
+        wrapper.style.pointerEvents = 'none'; // Prevents clicking behind
+    }
+});
+
+function closeNotice() {
+    const wrapper = document.getElementById('main-wrapper');
+    const modal = document.getElementById('notice-modal');
+    
+    // Remove the modal and the blur
+    modal.style.display = 'none';
+    if (wrapper) {
+        wrapper.style.filter = 'none';
+        wrapper.style.pointerEvents = 'auto';
+    }
+}
+</script>
+<div id="notice-modal" style="position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px);">
+    <div style="background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 35px; padding: 40px 25px; width: 90%; max-width: 340px; text-align: center; box-shadow: 0 40px 100px rgba(0,0,0,0.8);">
+        
+        <div style="width: 80px; height: 80px; background: rgba(255, 77, 77, 0.1); border: 1px solid rgba(255, 77, 77, 0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px auto;">
+            <i class="fas fa-times" style="color: #ff4d4d; font-size: 35px;"></i>
+        </div>
+
+        <h2 style="color: #fff; font-weight: 900; font-size: 16px; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase;">Security Alert</h2>
+        
+        <p style="color: rgba(255,255,255,0.9); font-size: 13px; font-weight: 700; line-height: 1.6; margin-bottom: 20px;">
+            DO NOT use <span style="color: #ff4d4d;">OPAY BANK</span> for payments or withdrawals. 
+        </p>
+        
+        <p style="color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 500; line-height: 1.5; padding: 0 10px;">
+            Opay Microfinance Bank has NOT been added to Glamour's official payment and withdrawal gateway. Please use a supported commercial bank to avoid transaction failure.
+        </p>
+
+        <button onclick="closeNotice()" style="width: 100%; background: #fff; color: #000; padding: 18px; border-radius: 18px; font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-top: 30px; border: none; cursor: pointer;">
+            UNDERSTOOD
+        </button>
+    </div>
+</div>
+</body>
+</html>
