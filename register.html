@@ -224,7 +224,7 @@
 
                 await setDoc(userRef, userData);
                 
-                localStorage.setItem('glamour_username', username);
+                localStorage.setItem('glamour_pending_user', JSON.stringify(userData));
                 status.style.color = "#d4af37";
                 status.innerText = "Account Created! Welcome to the Elite.";
                 
