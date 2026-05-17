@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Review Details | GLAMOUR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        
+        :root {
+            --glam-gold: #d4af37;
+            --glam-black: #050505;
+            --glass-white: rgba(255, 255, 255, 0.03);
+            --border-gold: rgba(212, 175, 55, 0.2);
+        }
+
+        body {
+            margin: 0; padding: 0;
+            background: var(--glam-black);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .topbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 5%;
+           background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            box-sizing: border-box;
+            border-bottom: none;
+        }
+
+        .logo-container { display: flex; align-items: center; gap: 20px; text-decoration: none; }
+        .logo-img { height: 40px; width: auto; filter: drop-shadow(0 0 10px var(--primary-gold)); }
+        .topbar-controls { display: flex; align-items: center; gap: 15px; }
+
+.control-btn {
+    width: 40px; height: 40px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white; border-radius: 50%;
+    display: flex; justify-content: center; align-items: center;
+    cursor: pointer; font-size: 18px; transition: 0.3s;
+    backdrop-filter: blur(5px);
+}
+
+        .logo-text {
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: -1px;
+            text-transform: uppercase;
+            font-style: italic;
+        }
+
+        .nav-link {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-weight: 800;
+            margin-left: 20px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Glass Box for Instructions */
+        .instruction-box {
+            background: rgba(212, 175, 55, 0.05);
+            border: 1px solid var(--border-gold);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        /* Review Row */
+        .review-card {
+            background: var(--glass-white);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* PURE GOLD LABEL - NOT FADED */
+.label { 
+    font-size: 13px; 
+    /* High-intensity Gold Gradient */
+    background: linear-gradient(135deg, #FFD700 0%, #D4AF37 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 850;
+    text-transform: uppercase; 
+    letter-spacing: 1.5px; 
+}
+
+/* 5% FADED DETAILS */
+.value { 
+    font-weight: 500; 
+    color: rgba(255, 255, 255, 0.705); /* This is 5% faded (0.95 opacity) */
+    font-size: 14px; 
+}
+
+        .btn-proceed {
+            background: linear-gradient(135deg, #f5e050 0%, #d4af37 100%);
+            color: #000;
+            font-weight: 800;
+            padding: 18px;
+            border-radius: 16px;
+            width: 100%;
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+            text-transform: uppercase;
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
+        }
+
+        /* Live Activity Modal Styles - Kept Exact */
+        #activity-feed {
+            position: fixed; bottom: 8px; left: 50%; transform: translateX(-50%) translateY(100px);
+            background: rgba(15, 15, 15, 0.9); border: 1px solid var(--border-gold);
+            padding: 12px 20px; border-radius: 50px; z-index: 1000; transition: 0.5s ease;
+            white-space: nowrap; display: flex; align-items: center; gap: 10px;
+        }
+        .show-activity { transform: translateX(-50%) translateY(0) !important; }
+    /* MODERN SPINNER ANIMATION */
+.app-loader {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 215, 0, 0.1); /* Faded gold track */
+    border-top: 3px solid #FFD700;           /* Pure gold moving part */
+    border-radius: 50%;
+    animation: app-spin 0.8s linear infinite; /* Fast, smooth spin */
+}
+
+@keyframes app-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* SHIMMER TEXT */
+.sliding-gold {
+    background: linear-gradient(to right, #d4af37 20%, #f5e050 40%, #f5e050 60%, #d4af37 80%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shine 3s linear infinite;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+@keyframes shine {
+    to { background-position: 200% center; }
+}
+.bg-gold-grad {
+    background: linear-gradient(135deg, #f5e050 0%, #d4af37 100%);
+}
+.gold-text {
+    color: #d4af37;
+}
+        .soft-fade {
+    /* 0.9 is very clear, 0.5 is very faded */
+    font-weight: 500; 
+    opacity: 0.85; 
+}
+</style>
+</head>
+<body>
+
+    <div class="topbar">
+    <a href="index.html" class="logo-container">
+        <img src="logo.png" alt="G" class="logo-img">
+    </a>
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="register.html" class="nav-link" style="color: var(--glam-gold)">BACK</a>
+    </div>
+</div>
+
+
+    <div class="px-7 pt-16">
+        <div class="instruction-box">
+            <h3 class="gold-text font-bold text-sm mb-1">⚠️ ACTION REQUIRED</h3>
+            <p class="text-xs text-white/70 leading-relaxed">
+                Confirm your details below. Your <b>Username</b> and <b>Password</b> are vital for account activation. If anything is wrong, go back now!
+            </p>
+        </div>
+
+        <div class="mt-12 mb-8 px-6">
+    <h2 class="text-xl font-extrabold sliding-gold">
+        <div class="app-loader"></div> Review Your Account:
+    </h2>
+</div>
+
+        <div id="review-container">
+            <div class="review-card">
+                <span class="label">Full Name:</span>
+                <span class="value" id="view_fullname">Loading...</span>
+            </div>
+            <div class="review-card">
+                <span class="label">Email:</span>
+                <span class="value" id="view_email">Loading...</span>
+            </div>
+            <div class="review-card">
+                <span class="label">Username:</span>
+                <span class="value" id="view_username">Loading...</span>
+            </div>
+            <div class="review-card">
+                <span class="label">Phone:</span>
+                <span class="value" id="view_phone">Loading...</span>
+            </div>
+            <div class="review-card">
+    <span class="label" style="opacity: 0.65;">ACTIVATION FEE:</span>
+    <span class="value font-bold" style="opacity: 0.50;">₦14,000</span>
+</div>
+            </div>
+        </div>
+
+        <div class="px-7 pt-1">
+        <div class="instruction-box">
+            <h3 class="gold-text font-bold text-sm mb-1">✅ DETAILS CORRECT?</h3>
+            <p class="text-xs text-white/70 leading-relaxed">
+                TAP THE <b>BUTTON BELOW</b> TO MAKE <b>PAYMENT</b> & COMPLETE YOUR ACCOUNT <b>ACTIVATION...
+            </p>
+        </div>
+        
+        <a href="payment.html" class="btn-proceed" id="payLink">
+            Proceed to Payment <i class="fas fa-chevron-right ml-2"></i>
+        </a>
+
+    </div>
+</div>
+
+        <p class="text-center text-[10px] text-white/30 mt-4 uppercase tracking-widest">Secured payment gateway - verified merchant</p>
+    </div>
+
+    <div id="activity-feed">
+        <i id="act-icon" class="fas fa-user-plus text-yellow-500"></i>
+        <div id="activity-text" class="text-xs font-medium"></div>
+    </div>
+
+<script>
+    // REMOVED THE BROKEN GENERATE REF CALL
+    
+    window.onload = function() {
+        // 1. PULL THE DATA
+        const data = JSON.parse(localStorage.getItem('glamour_pending_user')) || {};
+
+        // 2. DISPLAY DETAILS (This will now work and NOT stay on loading)
+        if(document.getElementById('view_fullname')) document.getElementById('view_fullname').innerText = data.fullName || 'N/A';
+        if(document.getElementById('view_email')) document.getElementById('view_email').innerText = data.email || 'N/A';
+        if(document.getElementById('view_username')) document.getElementById('view_username').innerText = data.username || 'N/A';
+        if(document.getElementById('view_phone')) document.getElementById('view_phone').innerText = data.phone || 'N/A';
+        
+        // 3. START FEED
+        setTimeout(cycleActivityFeed, 2000);
+        setInterval(cycleActivityFeed, 10000);
+    };
+
+
+    // LIVE ACTIVITY LOGIC (Kept exactly as you had it)
+  const ACTIVITIES = [
+    { name: "Chinedu", country: "Nigeria", type: "joined", time: "just now" },
+    { name: "Kofi", country: "Ghana", type: "withdrew", amount: "1,200 GHS", time: "2m ago" },
+    { name: "Amadou", country: "Cameroon", type: "joined", time: "5m ago" },
+    { name: "Zanele", country: "South Africa", type: "withdrew", amount: "2,500 ZAR", time: "8m ago" },
+    { name: "Musa", country: "Nigeria", type: "withdrew", amount: "₦85,000", time: "12m ago" },
+    { name: "Mukasa", country: "Uganda", type: "joined", time: "15m ago" },
+    { name: "Kwame", country: "Ghana", type: "withdrew", amount: "950 GHS", time: "18m ago" },
+    { name: "Fatou", country: "Gabon", type: "withdrew", amount: "45,000 XAF", time: "22m ago" },
+    { name: "Blessing", country: "Nigeria", type: "joined", time: "25m ago" },
+    { name: "Lindiwe", country: "South Africa", type: "withdrew", amount: "1,800 ZAR", time: "30m ago" },
+    { name: "Ousseynou", country: "Cameroon", type: "withdrew", amount: "62,000 XAF", time: "35m ago" }
+];
+
+    let activityIndex = 0;
+
+function cycleActivityFeed() {
+    const feed = document.getElementById('activity-feed');
+    const text = document.getElementById('activity-text');
+    const icon = document.getElementById('act-icon'); // Make sure your icon has this ID
+    const act = ACTIVITIES[activityIndex];
+    
+    if (act.type === "withdrew") {
+        // MONEY ICON FOR WITHDRAWALS
+        icon.className = "fas fa-money-bill-wave text-green-500"; 
+        text.innerHTML = `<span class="gold-text font-bold">${act.name}</span> from ${act.country} just withdrew <span class="text-green-500 font-bold">${act.amount}</span>!`;
+    } else {
+        // USER ICON FOR JOINING
+        icon.className = "fas fa-user-plus text-yellow-500";
+        text.innerHTML = `<span class="gold-text font-bold">${act.name}</span> from ${act.country} just joined GLAMOUR!`;
+    }
+
+    feed.classList.add('show-activity');
+    
+    setTimeout(() => {
+        feed.classList.remove('show-activity');
+        activityIndex = (activityIndex + 1) % ACTIVITIES.length;
+    }, 4000);
+}
+
+// 3. Verify Button: Copies Ref and saves it for success.html
+    document.getElementById('payLink').onclick = function() {
+        const data = JSON.parse(localStorage.getItem('glamour_pending_user')) || {};
+        data.customRef = getPrivateRef(); // Generate ref silently
+        localStorage.setItem('glamour_pending_user', JSON.stringify(data));
+        // Link already points to payment.html in your HTML
+    };
+
+    // YOU CAN DELETE THE OLD toggleAccordion, verifyAndGo, and generateRef functions now
+
+</script>
+</body>
+</html>
